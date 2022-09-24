@@ -64,7 +64,6 @@ async def query(input: bytearray, prices: dict) -> bytes:
     if not keys:
         logger.debug(f"No matching keys: '{min_time}' to '{max_time}'")
         return bytes(4)
-    logger.debug(f"Matching keys: '{keys}'")
 
     return int(sum([prices[key] for key in keys]) / len(keys)).to_bytes(4, "big", signed=True)
 
