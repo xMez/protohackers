@@ -56,17 +56,17 @@ class Chat:
             logger.error(f"Invalid name: {name}")
             return
         logger.info(f"Adding user: {name}")
-        session = await self.Session.create(r, w, name)
-        self.sessions.add(session)
-
-        user_list = await self.get_users()
+        user_list = await self.get_users("test")
         logger.debug(self.users + user_list + b"\n")
         w.write(self.users + user_list + b"\n")
         await w.drain()
 
+        session = await self.Session.create(r, w, name)
+        self.sessions.add(session)
 
-    async def get_users(self) -> bytes:
-        users = [f"{session}" for _, session in enumerate(self.sessions)]
+
+    async def get_users(self, name) -> bytes:
+        users = [f"{session}" for session in self.sessions]
         user_list = ",".join(users)
         return bytes(user_list, encoding="ascii")
 
