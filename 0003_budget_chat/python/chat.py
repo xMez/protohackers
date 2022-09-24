@@ -3,6 +3,7 @@ import logging
 import logging.config
 import re
 from typing import Set
+from typing_extensions import Self
 
 # create logger
 logging.config.fileConfig("../../logging.conf")
@@ -17,11 +18,14 @@ class UndefinedBehaviour(Exception):
 
 class Chat:
     class Session:
-        def __init__(self, r: asyncio.StreamReader, w: asyncio.StreamWriter, name: str) -> None:
+        @classmethod
+        async def create(cls, r: asyncio.StreamReader, w: asyncio.StreamWriter, name: str) -> Self:
             logger.debug(f"User session: {name}")
+            self = Session()
             self.r = r
             self.w = w
             self.name = name
+            return self
         
         def __eq__(self, value) -> str:
             return self.name == value
@@ -44,7 +48,7 @@ class Chat:
             logger.error(f"Invalid name: {name}")
             return
         logger.info(f"Adding user: {name}")
-        session = await self.Session(r, w, name)
+        session = await Session.create(r, w, name)
         logger.debug("DO WE EVEN GET HERE")
         await self.sessions.add(session)
 
