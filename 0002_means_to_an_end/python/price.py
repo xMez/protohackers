@@ -55,7 +55,7 @@ async def query(input: bytearray, prices: dict) -> int:
     min_time = int.from_bytes(input[:4], "big", signed=True)
     max_time = int.from_bytes(input[4:], "big", signed=True)
     logger.info(f"Querying: '{min_time}' to '{max_time}'")
-    keys = filter(lambda x: x >= min_time and x <= max_time, prices.keys())
+    keys = list(filter(lambda x: x >= min_time and x <= max_time, prices.keys()))
     logger.debug(f"Matching keys: '{keys}'")
 
     return int(sum([prices[key] for key in keys]) / len(keys))
