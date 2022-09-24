@@ -25,7 +25,7 @@ class Chat:
         def __eq__(self, value) -> str:
             return self.name == value
 
-    hello = b"Welcome to budgetchat! What shall I call you?"
+    hello = b"Welcome to budgetchat! What shall I call you?\n"
     users = b"* The room contains: "
     sessions: Set[Session]
 
@@ -34,14 +34,20 @@ class Chat:
         self.name_pattern = re.compile(r"^[a-zA-Z0-9]+", re.ASCII)
 
     async def handle(self, r: asyncio.StreamReader, w: asyncio.StreamWriter):
+        logger.debug("New connection!")
         w.write(self.hello)
         await w.drain()
 
-        message = await r.readline()
-        if name := await self.validate_name(message) == False:
+        name = await r.readline()
+        if not await self.validate_name(name):
+            logger.error(f"Invalid name: {name}")
             return
+        logger.info(f"Adding user: {name}")
         self.sessions.add(self.Session(r, w, name))
-        w.write(self.users + bytes(",".join(self.sessions), encoding="ascii"))
+
+        logger.debug("Users: {self.sessions}")
+        w.write(self.users + bytes(",".join(self.sessions), encoding="ascii") + b"\n")
+        await w.drain()
 
         
     async def validate_name(self, name: str) -> bool:
