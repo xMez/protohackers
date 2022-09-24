@@ -45,6 +45,7 @@ class Chat:
             return
         logger.info(f"Adding user: {name}")
         session = await self.Session(r, w, name)
+        logger.debug("DO WE EVEN GET HERE")
         await self.sessions.add(session)
 
         logger.debug(self.users + bytes(",".join(self.sessions), encoding="ascii") + b"\n")
