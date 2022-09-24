@@ -1,26 +1,30 @@
 import asyncio
 import logging
+from asyncio.log import logger
 
 LENGTH = 9
+
+logger.setLevel(logging.DEBUG)
 
 
 class UndefinedBehaviour(Exception):
     def __init__(self, message: str) -> None:
-        logging.error(message)
+        logger.error(message)
         super().__init__(message)
 
 
 async def handle(r: asyncio.StreamReader, w: asyncio.StreamWriter):
     prices = {}
     data = bytearray(9)
-    data = await r.read(LENGTH)
-    while data:
+    while data := await r.read(LENGTH):
+        logger.debug(f"Processing: {data}")
         try:
             match data[0]:
                 case 73:  # I
                     prices = await insert(data[1:], prices)
                 case 81:  # Q
                     price = await query(data[1:], prices)
+                    logger.debug(f"Sending: {price}")
                     w.write(bytes(price))
                     await w.drain()
                 case _:
@@ -28,7 +32,6 @@ async def handle(r: asyncio.StreamReader, w: asyncio.StreamWriter):
         except UndefinedBehaviour:
             w.write(b"Undefined behaviour")
             break
-        data = await r.read(LENGTH)
     await w.drain()
     w.close()
     
@@ -36,7 +39,7 @@ async def handle(r: asyncio.StreamReader, w: asyncio.StreamWriter):
 async def insert(input: bytearray, prices: dict) -> dict:
     time = int.from_bytes(input[:4], "big", signed=True)
     price = int.from_bytes(input[4:], "big", signed=True)
-    logging.error(f"Inserting, {time}: {price}")
+    logger.debug(f"Inserting, {time}: {price}")
     if time in prices.keys():
         raise UndefinedBehaviour(f"Existing timestamp, '{time}', '{prices.keys()}'")
     prices[time] = price
