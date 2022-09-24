@@ -47,7 +47,7 @@ class Chat:
         session = await self.Session(r, w, name)
         await self.sessions.add(session)
 
-        logger.debug("Users: {self.sessions}")
+        logger.debug(self.users + bytes(",".join(self.sessions), encoding="ascii") + b"\n")
         w.write(self.users + bytes(",".join(self.sessions), encoding="ascii") + b"\n")
         await w.drain()
 
