@@ -17,6 +17,10 @@ class UndefinedBehaviour(Exception):
 
 class Chat:
     class Session:
+        r: asyncio.StreamReader
+        w: asyncio.StreamWriter
+        name: str
+
         @classmethod
         async def create(cls, r: asyncio.StreamReader, w: asyncio.StreamWriter, name: bytes):
             logger.debug(f"User session: {name}")
@@ -39,7 +43,8 @@ class Chat:
             return self.name
 
     hello = b"Welcome to budgetchat! What shall I call you?\n"
-    users = b"* The room contains: "
+    presence = "* The room contains: {}\n"
+    announce = "* {} has entered the room\n"
     sessions: Set[Session]
 
     def __init__(self) -> None:
@@ -57,15 +62,23 @@ class Chat:
             return
         logger.info(f"Adding user: {name}")
         user_list = await self.get_users("test")
-        logger.debug(self.users + user_list + b"\n")
-        w.write(self.users + user_list + b"\n")
+        presence = self.presence.format(user_list)
+        logger.debug(self.presence + user_list + b"\n")
+        w.write(bytes(presence, encoding="ascii"))
         await w.drain()
 
         session = await self.Session.create(r, w, name)
+        await self.announce_user(session.name)
         self.sessions.add(session)
 
 
-    async def get_users(self, name) -> bytes:
+    async def announce_user(self, name: str) -> None:
+        announce = self.announce.format(name)
+        for session in self.sessions:
+            session.w.write(bytes(announce, encoding="ascii"))
+            await session.w.drain()
+
+    async def get_users(self) -> bytes:
         users = [f"{session}" for session in self.sessions]
         user_list = ",".join(users)
         return bytes(user_list, encoding="ascii")
