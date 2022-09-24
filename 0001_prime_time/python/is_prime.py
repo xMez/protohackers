@@ -3,7 +3,6 @@ import math
 import socket
 import threading
 import socketserver
-from typing import Union
 
 BUFFER = 8192
 
@@ -55,7 +54,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             raise MalformedRequestError from error
     
     @staticmethod
-    def get_number(data: dict) -> Union[int, float]:
+    def get_number(data: dict) -> int | float:
         if data.get("method") == "isPrime":
             print("correct method")
             number = data.get("number")
@@ -64,7 +63,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
         raise MalformedRequestError
 
     @staticmethod
-    def is_prime(n: Union[int, float]) -> bool:
+    def is_prime(n: int | float) -> bool:
         if isinstance(n, float):
             return False
         if n < 2:
