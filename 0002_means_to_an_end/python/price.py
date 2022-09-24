@@ -18,9 +18,9 @@ class UndefinedBehaviour(Exception):
 async def handle(r: asyncio.StreamReader, w: asyncio.StreamWriter):
     prices = {}
     data = bytearray(9)
-    while data := await r.readexactly(LENGTH):
-        logger.debug(f"Processing: {data}")
-        try:
+    try:
+        while data := await r.readexactly(LENGTH):
+            logger.debug(f"Processing: {data}")
             match data[0]:
                 case 73:  # I
                     prices = await insert(data[1:], prices)
@@ -31,10 +31,12 @@ async def handle(r: asyncio.StreamReader, w: asyncio.StreamWriter):
                     await w.drain()
                 case _:
                     raise UndefinedBehaviour(f"Invalid type, '{data[0]}'")
-        except UndefinedBehaviour:
-            w.write(b"Undefined behaviour")
-            await w.drain()
-            break
+    except UndefinedBehaviour:
+        w.write(b"Undefined behaviour")
+        await w.drain()
+    except asyncio.IncompleteReadError:
+        w.write(b"Incomplete message")
+        await w.drain()
     w.close()
     await w.wait_closed()
     
