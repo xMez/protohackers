@@ -18,6 +18,7 @@ class UndefinedBehaviour(Exception):
 class Chat:
     class Session:
         def __init__(self, r: asyncio.StreamReader, w: asyncio.StreamWriter, name: str) -> None:
+            logger.debug(f"User session: {name}")
             self.r = r
             self.w = w
             self.name = name
@@ -43,7 +44,7 @@ class Chat:
             logger.error(f"Invalid name: {name}")
             return
         logger.info(f"Adding user: {name}")
-        self.sessions.add(self.Session(r, w, name))
+        await self.sessions.add(self.Session(r, w, name))
 
         logger.debug("Users: {self.sessions}")
         w.write(self.users + bytes(",".join(self.sessions), encoding="ascii") + b"\n")
