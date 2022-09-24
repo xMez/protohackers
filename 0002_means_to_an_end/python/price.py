@@ -27,7 +27,7 @@ async def handle(r: asyncio.StreamReader, w: asyncio.StreamWriter):
                 case 81:  # Q
                     price = await query(data[1:], prices)
                     logger.debug(f"Sending: {price}")
-                    w.write(bytes(price))
+                    w.write(price)
                     await w.drain()
                 case _:
                     raise UndefinedBehaviour(f"Invalid type, '{data[0]}'")
@@ -51,14 +51,14 @@ async def insert(input: bytearray, prices: dict) -> dict:
     return prices
 
 
-async def query(input: bytearray, prices: dict) -> int:
+async def query(input: bytearray, prices: dict) -> bytes:
     min_time = int.from_bytes(input[:4], "big", signed=True)
     max_time = int.from_bytes(input[4:], "big", signed=True)
     logger.info(f"Querying: '{min_time}' to '{max_time}'")
     keys = list(filter(lambda x: x >= min_time and x <= max_time, prices.keys()))
     logger.debug(f"Matching keys: '{keys}'")
 
-    return int(sum([prices[key] for key in keys]) / len(keys))
+    return int(sum([prices[key] for key in keys]) / len(keys)).to_bytes(4, "big", signed=True)
 
 
 async def main():
