@@ -61,9 +61,9 @@ class Chat:
             logger.error(f"Invalid name: {name}")
             return
         logger.info(f"Adding user: {name}")
-        user_list = await self.get_users("test")
+        user_list: str = await self.get_users()
         presence = self.presence.format(user_list)
-        logger.debug(self.presence + user_list + b"\n")
+        logger.debug(presence)
         w.write(bytes(presence, encoding="ascii"))
         await w.drain()
 
@@ -78,10 +78,10 @@ class Chat:
             session.w.write(bytes(announce, encoding="ascii"))
             await session.w.drain()
 
-    async def get_users(self) -> bytes:
+    async def get_users(self) -> str:
         users = [f"{session}" for session in self.sessions]
         user_list = ",".join(users)
-        return bytes(user_list, encoding="ascii")
+        return user_list
 
         
     async def validate_name(self, name: str) -> bool:
