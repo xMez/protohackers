@@ -18,7 +18,7 @@ class UndefinedBehaviour(Exception):
 async def handle(r: asyncio.StreamReader, w: asyncio.StreamWriter):
     prices = {}
     data = bytearray(9)
-    while data := await r.read(LENGTH):
+    while data := await r.readexactly(LENGTH):
         logger.debug(f"Processing: {data}")
         try:
             match data[0]:
