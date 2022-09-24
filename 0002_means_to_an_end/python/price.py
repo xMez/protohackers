@@ -1,10 +1,12 @@
 import asyncio
 import logging
-from asyncio.log import logger
+import logging.config
 
 LENGTH = 9
 
-logger.setLevel(logging.DEBUG)
+# create logger
+logging.config.fileConfig("../../logging.conf")
+logger = logging.getLogger('price')
 
 
 class UndefinedBehaviour(Exception):
@@ -31,9 +33,10 @@ async def handle(r: asyncio.StreamReader, w: asyncio.StreamWriter):
                     raise UndefinedBehaviour(f"Invalid type, '{data[0]}'")
         except UndefinedBehaviour:
             w.write(b"Undefined behaviour")
+            await w.drain()
             break
-    await w.drain()
     w.close()
+    await w.wait_closed()
     
 
 async def insert(input: bytearray, prices: dict) -> dict:
