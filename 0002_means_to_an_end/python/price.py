@@ -44,7 +44,7 @@ async def handle(r: asyncio.StreamReader, w: asyncio.StreamWriter):
 async def insert(input: bytearray, prices: dict) -> dict:
     time = int.from_bytes(input[:4], "big", signed=True)
     price = int.from_bytes(input[4:], "big", signed=True)
-    logger.debug(f"Inserting, {time}: {price}")
+    logger.info(f"Inserting: '{time}: {price}'")
     if time in prices.keys():
         raise UndefinedBehaviour(f"Existing timestamp, '{time}', '{prices.keys()}'")
     prices[time] = price
@@ -54,7 +54,10 @@ async def insert(input: bytearray, prices: dict) -> dict:
 async def query(input: bytearray, prices: dict) -> int:
     min_time = int.from_bytes(input[:4], "big", signed=True)
     max_time = int.from_bytes(input[4:], "big", signed=True)
+    logger.info(f"Querying: '{min_time}' to '{max_time}'")
     keys = filter(lambda x: x >= min_time and x <= max_time, prices.keys())
+    logger.debug(f"Matching keys: '{keys}'")
+
     return int(sum([prices[key] for key in keys]) / len(keys))
 
 
