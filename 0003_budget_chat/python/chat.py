@@ -44,7 +44,8 @@ class Chat:
             logger.error(f"Invalid name: {name}")
             return
         logger.info(f"Adding user: {name}")
-        await self.sessions.add(self.Session(r, w, name))
+        session = await self.Session(r, w, name)
+        await self.sessions.add(session)
 
         logger.debug("Users: {self.sessions}")
         w.write(self.users + bytes(",".join(self.sessions), encoding="ascii") + b"\n")
