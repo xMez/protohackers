@@ -18,23 +18,32 @@ class UndefinedBehaviour(Exception):
 class Chat:
     class Session:
         @classmethod
-        async def create(cls, r: asyncio.StreamReader, w: asyncio.StreamWriter, name: str):
+        async def create(cls, r: asyncio.StreamReader, w: asyncio.StreamWriter, name: bytes):
             logger.debug(f"User session: {name}")
-            self = Session()
+            self = Chat.Session()
             self.r = r
             self.w = w
-            self.name = name
+            self.name = str(name, encoding="ascii").strip()
             return self
         
         def __eq__(self, value) -> str:
             return self.name == value
+
+        def __hash__(self) -> int:
+            return hash(self.name)
+
+        def __str__(self) -> str:
+            return self.name
+
+        def __repr__(self) -> str:
+            return self.name
 
     hello = b"Welcome to budgetchat! What shall I call you?\n"
     users = b"* The room contains: "
     sessions: Set[Session]
 
     def __init__(self) -> None:
-        self.sessions = []
+        self.sessions = set()
         self.name_pattern = re.compile(r"^[a-zA-Z0-9]+", re.ASCII)
 
     async def handle(self, r: asyncio.StreamReader, w: asyncio.StreamWriter):
@@ -47,17 +56,23 @@ class Chat:
             logger.error(f"Invalid name: {name}")
             return
         logger.info(f"Adding user: {name}")
-        session = await Session.create(r, w, name)
-        logger.debug("DO WE EVEN GET HERE")
-        await self.sessions.add(session)
+        session = await self.Session.create(r, w, name)
+        self.sessions.add(session)
 
-        logger.debug(self.users + bytes(",".join(self.sessions), encoding="ascii") + b"\n")
-        w.write(self.users + bytes(",".join(self.sessions), encoding="ascii") + b"\n")
+        user_list = await self.get_users()
+        logger.debug(self.users + user_list + b"\n")
+        w.write(self.users + user_list + b"\n")
         await w.drain()
+
+
+    async def get_users(self) -> bytes:
+        users = [f"{session}" for _, session in enumerate(self.sessions)]
+        user_list = ",".join(users)
+        return bytes(user_list, encoding="ascii")
 
         
     async def validate_name(self, name: str) -> bool:
-        if len(name) > 32:
+        if len(name) >= 32:
             return False
         elif name in self.sessions:
             return False
