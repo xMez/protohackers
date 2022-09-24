@@ -54,8 +54,16 @@ async def insert(input: bytearray, prices: dict) -> dict:
 async def query(input: bytearray, prices: dict) -> bytes:
     min_time = int.from_bytes(input[:4], "big", signed=True)
     max_time = int.from_bytes(input[4:], "big", signed=True)
+
+    if min_time > max_time:
+        logger.debug(f"Min > Max: '{min_time}' < '{max_time}'")
+        return bytes(4)
     logger.info(f"Querying: '{min_time}' to '{max_time}'")
+
     keys = list(filter(lambda x: x >= min_time and x <= max_time, prices.keys()))
+    if not keys:
+        logger.debug(f"No matching keys: '{min_time}' to '{max_time}'")
+        return bytes(4)
     logger.debug(f"Matching keys: '{keys}'")
 
     return int(sum([prices[key] for key in keys]) / len(keys)).to_bytes(4, "big", signed=True)
