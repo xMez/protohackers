@@ -3,7 +3,6 @@ import logging
 import logging.config
 import re
 from typing import Set
-from typing_extensions import Self
 
 # create logger
 logging.config.fileConfig("../../logging.conf")
@@ -19,7 +18,7 @@ class UndefinedBehaviour(Exception):
 class Chat:
     class Session:
         @classmethod
-        async def create(cls, r: asyncio.StreamReader, w: asyncio.StreamWriter, name: str) -> Self:
+        async def create(cls, r: asyncio.StreamReader, w: asyncio.StreamWriter, name: str):
             logger.debug(f"User session: {name}")
             self = Session()
             self.r = r
