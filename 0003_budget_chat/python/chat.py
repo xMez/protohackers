@@ -73,8 +73,8 @@ class Chat:
 
     async def join(self, session: Session) -> str:
         await session.send(self.hello)
-        name = await session.recv()
-        if await self.validate_name(name):
+        message = await session.recv()
+        if name := await self.validate_name(message):
             logger.debug(f"Valid user: {name}")
             users: str = await self.get_users()
             await session.send(self.presence.format(users))
@@ -109,15 +109,15 @@ class Chat:
         users = [f"{session}" for session in self.sessions]
         return ",".join(users)
 
-    async def validate_name(self, name: str) -> bool:
+    async def validate_name(self, name: str) -> Optional[str]:
         name = name.rstrip("\r\n")
         if len(name) >= 32:
-            return False
+            return None
         if name in self.sessions:
-            return False
+            return None
         if not self.name_pattern.match(name):
-            return False
-        return True
+            return None
+        return name
 
 
 async def main():
