@@ -32,11 +32,12 @@ class Chat:
             self = Chat.Session()
             self.reader = reader
             self.writer = writer
+            self.name = ""
             self.uuid = uuid4().hex
             return self
 
         async def send(self, message: bytes | str, name: Optional[str] = None) -> None:
-            if name == self.name:
+            if name and name == self.name:
                 return
             if isinstance(message, str):
                 message = bytes(message, encoding="ascii")
