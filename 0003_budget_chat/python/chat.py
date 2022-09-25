@@ -26,15 +26,13 @@ class Chat:
             cls,
             reader: asyncio.StreamReader,
             writer: asyncio.StreamWriter,
-            name: bytes | str,
+            name: str,
         ):
             logger.debug(f"User session: {name!r}")
             self = Chat.Session()
             self.reader = reader
             self.writer = writer
-            if isinstance(name, bytes):
-                name = str(name, encoding="ascii")
-            self.name = name.strip()
+            self.name = name
             return self
 
         async def send(self, message: bytes | str, name: Optional[str] = None) -> None:
@@ -81,7 +79,7 @@ class Chat:
             logger.debug(f"Valid user: {name}")
             users: str = await self.get_users()
             await session.send(self.presence.format(users))
-            return name
+            return name.rstrip("\r\n")
         raise UndefinedBehaviour("User failed to join")
 
     async def handle(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
