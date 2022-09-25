@@ -33,8 +33,8 @@ class Chat:
             self.reader = reader
             self.writer = writer
             if isinstance(name, bytes):
-                name = str(name, encoding="ascii").strip()
-            self.name = name
+                name = str(name, encoding="ascii")
+            self.name = name.strip()
             return self
 
         async def send(self, message: bytes | str, name: Optional[str] = None) -> None:
