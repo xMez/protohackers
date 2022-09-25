@@ -36,12 +36,10 @@ class Chat:
             self.uuid = uuid4().hex
             return self
 
-        async def send(self, message: bytes | str, name: Optional[str] = None) -> None:
+        async def send(self, message: str, name: Optional[str] = None) -> None:
             if name and name == self.name:
                 return
-            if isinstance(message, str):
-                message = bytes(message, encoding="ascii")
-            self.writer.write(message)
+            self.writer.write(bytes(message, encoding="ascii"))
             logger.info(f"{self.uuid} --> {self.name}: {message!r}")
             await self.writer.drain()
 
@@ -62,7 +60,7 @@ class Chat:
         def __repr__(self) -> str:
             return self.name
 
-    hello = b"Welcome to budgetchat! What shall I call you?\n"
+    hello = "Welcome to budgetchat! What shall I call you?\n"
     presence = "* The room contains: {}\n"
     user_join = "* {} has entered the room\n"
     user_leave = "* {} has left the room\n"
@@ -80,7 +78,7 @@ class Chat:
             logger.debug(f"Valid user: {name}")
             users: str = await self.get_users()
             await session.send(self.presence.format(users))
-            return name.rstrip("\r\n")
+            return name
         raise UndefinedBehaviour("User failed to join")
 
     async def handle(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
@@ -112,6 +110,7 @@ class Chat:
         return ",".join(users)
 
     async def validate_name(self, name: str) -> bool:
+        name = name.rstrip("\r\n")
         if len(name) >= 32:
             return False
         if name in self.sessions:
