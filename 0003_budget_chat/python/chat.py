@@ -45,6 +45,8 @@ class Chat:
     hello = b"Welcome to budgetchat! What shall I call you?\n"
     presence = "* The room contains: {}\n"
     announce = "* {} has entered the room\n"
+    leave = "* {} has left the room\n"
+    message = "[{}] {}\n"
     sessions: Set[Session]
 
     def __init__(self) -> None:
@@ -70,6 +72,16 @@ class Chat:
         session = await self.Session.create(r, w, name)
         await self.announce_user(session.name)
         self.sessions.add(session)
+
+        while line := await session.r.readline():
+            await self.send_message(session.name, line)
+
+
+    async def send_message(self, name: str, message: bytes):
+        sessions = set(name) ^ self.sessions
+        for session in sessions:
+            session.w.write(message)
+            await session.w.drain()
 
 
     async def announce_user(self, name: str) -> None:
@@ -103,4 +115,4 @@ async def main():
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    asyncio.run(main(), debug=True)
