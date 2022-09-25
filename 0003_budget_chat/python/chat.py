@@ -3,6 +3,7 @@ import logging
 import logging.config
 import re
 from typing import Optional, Set
+from uuid import uuid4
 
 # create logger
 logging.config.fileConfig("../../logging.conf")
@@ -20,19 +21,18 @@ class Chat:
         reader: asyncio.StreamReader
         writer: asyncio.StreamWriter
         name: str
+        uuid: str
 
         @classmethod
         async def create(
             cls,
             reader: asyncio.StreamReader,
             writer: asyncio.StreamWriter,
-            name: str,
         ):
-            logger.debug(f"User session: {name!r}")
             self = Chat.Session()
             self.reader = reader
             self.writer = writer
-            self.name = name
+            self.uuid = uuid4().hex
             return self
 
         async def send(self, message: bytes | str, name: Optional[str] = None) -> None:
@@ -41,12 +41,12 @@ class Chat:
             if isinstance(message, str):
                 message = bytes(message, encoding="ascii")
             self.writer.write(message)
-            logger.info(f"--> {self.name}: {message!r}")
+            logger.info(f"{self.uuid} --> {self.name}: {message!r}")
             await self.writer.drain()
 
         async def recv(self) -> str:
             message = await self.reader.readline()
-            logger.info(f"<-- {self.name}: {message!r}")
+            logger.info(f"{self.uuid} <-- {self.name}: {message!r}")
             return message.decode(encoding="ascii")
 
         def __eq__(self, value) -> bool:
