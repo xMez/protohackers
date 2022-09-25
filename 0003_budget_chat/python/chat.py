@@ -32,7 +32,7 @@ class Chat:
             self = Chat.Session()
             self.reader = reader
             self.writer = writer
-            self.uuid = await uuid4().hex
+            self.uuid = uuid4().hex
             return self
 
         async def send(self, message: bytes | str, name: Optional[str] = None) -> None:
@@ -84,7 +84,7 @@ class Chat:
 
     async def handle(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
         try:
-            session = await self.Session.create(reader, writer, "")
+            session = await self.Session.create(reader, writer)
             session.name = await self.join(session)
             await self.send(self.user_join, session.name)
             self.sessions.add(session)
