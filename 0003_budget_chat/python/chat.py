@@ -28,12 +28,13 @@ class Chat:
             cls,
             reader: asyncio.StreamReader,
             writer: asyncio.StreamWriter,
+            uuid: str
         ):
             self = Chat.Session()
             self.reader = reader
             self.writer = writer
             self.name = ""
-            self.uuid = uuid4().hex
+            self.uuid = uuid
             return self
 
         async def send(self, message: str, name: Optional[str] = None) -> None:
@@ -45,7 +46,7 @@ class Chat:
 
         async def recv(self) -> str:
             message = await self.reader.readline()
-            # logger.info(f"{self.uuid} <-- {self.name}: {message!r}")
+            logger.info(f"{self.uuid} <-- {self.name}: {message!r}")
             return message.decode(encoding="ascii").rstrip("\r\n")
 
         def __eq__(self, value) -> bool:
@@ -75,7 +76,6 @@ class Chat:
         await session.send(self.hello)
         message = await session.recv()
         if name := await self.validate_name(message):
-            logger.debug(f"Valid user: {name}")
             users: str = await self.get_users()
             await session.send(self.presence.format(users))
             return name
@@ -83,8 +83,9 @@ class Chat:
 
     async def handle(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
         try:
-            logger.debug("New connection")
-            session = await self.Session.create(reader, writer)
+            uuid = uuid4().hex
+            logger.debug(f"{uuid} === New session")
+            session = await self.Session.create(reader, writer, uuid)
             session.name = await self.join(session)
             await self.send(self.user_join, session.name)
             self.sessions.add(session)
@@ -92,7 +93,7 @@ class Chat:
             while message := await session.recv():
                 await self.send(self.message, session.name, message, name=session.name)
 
-            logger.debug(f"{session.uuid} === {session.name}: Terminating session")
+            logger.debug(f"{session.uuid} === Terminating session")
             self.sessions.remove(session)
             await self.send(self.user_leave, session.name)
 
