@@ -43,12 +43,12 @@ class Chat:
             if isinstance(message, str):
                 message = bytes(message, encoding="ascii")
             self.writer.write(message)
-            logger.info("--> {}: {}", self.name, message)
+            logger.info("--> {}: {}", self.name, str(message))
             await self.writer.drain()
 
         async def recv(self) -> str:
             message = await self.reader.readline()
-            logger.info("<-- {}: {}", self.name, message)
+            logger.info("<-- {}: {}", self.name, str(message))
             return message.decode(encoding="ascii")
 
         def __eq__(self, value) -> bool:
