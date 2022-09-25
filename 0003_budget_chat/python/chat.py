@@ -46,7 +46,7 @@ class Chat:
         async def recv(self) -> str:
             message = await self.reader.readline()
             # logger.info(f"{self.uuid} <-- {self.name}: {message!r}")
-            return message.decode(encoding="ascii")
+            return message.decode(encoding="ascii").rstrip("\r\n")
 
         def __eq__(self, value) -> bool:
             return self.name == value
@@ -112,7 +112,6 @@ class Chat:
         return ",".join(users)
 
     async def validate_name(self, name: str) -> Optional[str]:
-        name = name.rstrip("\r\n")
         if len(name) >= 32:
             return None
         if name in self.sessions:
