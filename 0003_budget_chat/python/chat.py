@@ -32,7 +32,7 @@ class Chat:
             self = Chat.Session()
             self.reader = reader
             self.writer = writer
-            self.uuid = uuid4().hex
+            self.uuid = await uuid4().hex
             return self
 
         async def send(self, message: bytes | str, name: Optional[str] = None) -> None:
