@@ -28,7 +28,7 @@ class Chat:
             writer: asyncio.StreamWriter,
             name: bytes | str,
         ):
-            logger.debug("User session: {}", name)
+            logger.debug(f"User session: {name!r}")
             self = Chat.Session()
             self.reader = reader
             self.writer = writer
@@ -43,12 +43,12 @@ class Chat:
             if isinstance(message, str):
                 message = bytes(message, encoding="ascii")
             self.writer.write(message)
-            logger.info("--> {}: {}", self.name, str(message))
+            logger.info(f"--> {self.name}: {message!r}")
             await self.writer.drain()
 
         async def recv(self) -> str:
             message = await self.reader.readline()
-            logger.info("<-- {}: {}", self.name, str(message))
+            logger.info(f"<-- {self.name}: {message!r}")
             return message.decode(encoding="ascii")
 
         def __eq__(self, value) -> bool:
@@ -78,7 +78,7 @@ class Chat:
         await session.send(self.hello)
         name = await session.recv()
         if await self.validate_name(name):
-            logger.debug("Valid user: {}", name)
+            logger.debug(f"Valid user: {name}")
             users: str = await self.get_users()
             await session.send(self.presence.format(users))
             return name
