@@ -2,11 +2,11 @@ import asyncio
 import logging
 import logging.config
 import re
-from typing import Set
+from typing import Optional, Set
 
 # create logger
 logging.config.fileConfig("../../logging.conf")
-logger = logging.getLogger('chat')
+logger = logging.getLogger("chat")
 
 
 class UndefinedBehaviour(Exception):
@@ -17,42 +17,56 @@ class UndefinedBehaviour(Exception):
 
 class Chat:
     class Session:
-        r: asyncio.StreamReader
-        w: asyncio.StreamWriter
+        reader: asyncio.StreamReader
+        writer: asyncio.StreamWriter
         name: str
 
         @classmethod
-        async def create(cls, r: asyncio.StreamReader, w: asyncio.StreamWriter, name: bytes | str):
-            logger.debug(f"User session: {name}")
+        async def create(
+            cls,
+            reader: asyncio.StreamReader,
+            writer: asyncio.StreamWriter,
+            name: bytes | str,
+        ):
+            logger.debug("User session: {}", name)
             self = Chat.Session()
-            self.r = r
-            self.w = w
+            self.reader = reader
+            self.writer = writer
             if isinstance(name, bytes):
                 name = str(name, encoding="ascii").strip()
             self.name = name
             return self
 
-        async def send(self, message: bytes | str) -> None:
+        async def send(self, message: bytes | str, name: Optional[str] = None) -> None:
+            if name == self.name:
+                return
             if isinstance(message, str):
                 message = bytes(message, encoding="ascii")
-            self.w.write(message)
-            logger.info(f"--> {self.name}: {message}")
-            await self.w.drain()
+            self.writer.write(message)
+            logger.info("--> {}: {}", self.name, message)
+            await self.writer.drain()
 
         async def recv(self) -> str:
-            message = await self.r.readline()
-            logger.info(f"<-- {self.name}: {message}")
+            message = await self.reader.readline()
+            logger.info("<-- {}: {}", self.name, message)
             return message.decode(encoding="ascii")
-        
-        def __eq__(self, value) -> str: return self.name == value
-        def __hash__(self) -> int: return hash(self.name)
-        def __str__(self) -> str: return self.name
-        def __repr__(self) -> str: return self.name
+
+        def __eq__(self, value) -> bool:
+            return self.name == value
+
+        def __hash__(self) -> int:
+            return hash(self.name)
+
+        def __str__(self) -> str:
+            return self.name
+
+        def __repr__(self) -> str:
+            return self.name
 
     hello = b"Welcome to budgetchat! What shall I call you?\n"
     presence = "* The room contains: {}\n"
-    join = "* {} has entered the room\n"
-    leave = "* {} has left the room\n"
+    user_join = "* {} has entered the room\n"
+    user_leave = "* {} has left the room\n"
     message = "[{}] {}\n"
     sessions: Set[Session]
 
@@ -64,60 +78,49 @@ class Chat:
         await session.send(self.hello)
         name = await session.recv()
         if await self.validate_name(name):
-            logger.debug(f"Valid user: {name}")
+            logger.debug("Valid user: {}", name)
             users: str = await self.get_users()
             await session.send(self.presence.format(users))
             return name
-        raise UndefinedBehaviour
+        raise UndefinedBehaviour("User failed to join")
 
-
-    async def handle(self, r: asyncio.StreamReader, w: asyncio.StreamWriter):
+    async def handle(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
         try:
-            session = await self.Session.create(r, w, "")
+            session = await self.Session.create(reader, writer, "")
             session.name = await self.join(session)
-            self.announce_join(session.name)
+            await self.send(self.user_join, session.name)
             self.sessions.add(session)
 
             while message := await session.recv():
-                self.send_message(session.name, message)
-            
+                await self.send(self.message, session.name, message, name=session.name)
+
             self.sessions.remove(session)
-            self.announce_leave(session.name)
+            await self.send(self.user_leave, session.name)
 
         except UndefinedBehaviour:
-            w.write(b"Undefined behaviour")
-            await w.drain()
-        w.close()
-        await w.wait_closed()
+            writer.write(b"Undefined behaviour")
+            await writer.drain()
+        writer.close()
+        await writer.wait_closed()
 
-    async def send_message(self, name: str, message: str):
-        message = self.message.format(name, message)
-        sessions = set(name) ^ self.sessions
-        for session in sessions:
-            await session.send(message)
-
-    async def announce_join(self, name: str) -> None:
-        announce = self.join.format(name)
+    async def send(self, template: str, *args, name: Optional[str] = None):
+        message = template.format(*args)
         for session in self.sessions:
-            await session.send(announce)
-
-    async def announce_leave(self, name: str)  -> None:
-        announce = self.leave.format(name)
-        for session in self.sessions:
-            await session.send(announce)
+            await session.send(message, name)
 
     async def get_users(self) -> str:
         users = [f"{session}" for session in self.sessions]
         return ",".join(users)
-        
+
     async def validate_name(self, name: str) -> bool:
         if len(name) >= 32:
             return False
-        elif name in self.sessions:
+        if name in self.sessions:
             return False
-        elif not self.name_pattern.match(str(name, encoding="ascii")):
+        if not self.name_pattern.match(name):
             return False
         return True
+
 
 async def main():
     HOST, PORT = "0.0.0.0", 10007
