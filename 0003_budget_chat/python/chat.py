@@ -45,7 +45,7 @@ class Chat:
 
         async def recv(self) -> str:
             message = await self.reader.readline()
-            logger.info(f"{self.uuid} <-- {self.name}: {message!r}")
+            # logger.info(f"{self.uuid} <-- {self.name}: {message!r}")
             return message.decode(encoding="ascii")
 
         def __eq__(self, value) -> bool:
