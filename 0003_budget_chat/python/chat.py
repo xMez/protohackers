@@ -91,6 +91,7 @@ class Chat:
             while message := await session.recv():
                 await self.send(self.message, session.name, message, name=session.name)
 
+            logger.debug(f"Terminating session: {session.name} {session.uuid}")
             self.sessions.remove(session)
             await self.send(self.user_leave, session.name)
 
