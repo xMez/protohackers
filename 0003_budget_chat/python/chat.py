@@ -64,6 +64,7 @@ class Chat:
         await session.send(self.hello)
         name = await session.recv()
         if await self.validate_name(name):
+            logger.debug(f"Valid user: {name}")
             users: str = await self.get_users()
             await session.send(self.presence.format(users))
             return name
@@ -107,8 +108,7 @@ class Chat:
 
     async def get_users(self) -> str:
         users = [f"{session}" for session in self.sessions]
-        user_list = ",".join(users)
-        return user_list
+        return ",".join(users)
         
     async def validate_name(self, name: str) -> bool:
         if len(name) >= 32:
