@@ -83,6 +83,7 @@ class Chat:
 
     async def handle(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
         try:
+            logger.debug("New connection")
             session = await self.Session.create(reader, writer)
             session.name = await self.join(session)
             await self.send(self.user_join, session.name)
@@ -91,7 +92,7 @@ class Chat:
             while message := await session.recv():
                 await self.send(self.message, session.name, message, name=session.name)
 
-            logger.debug(f"Terminating session: {session.name} {session.uuid}")
+            logger.debug(f"{session.uuid} === {session.name}: Terminating session")
             self.sessions.remove(session)
             await self.send(self.user_leave, session.name)
 
