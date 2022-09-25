@@ -61,11 +61,11 @@ class Chat:
         self.name_pattern = re.compile(r"^[a-zA-Z0-9]+", re.ASCII)
 
     async def join(self, session: Session) -> str:
-        session.send(self.hello)
+        await session.send(self.hello)
         name = await session.recv()
         if await self.validate_name(name):
             users: str = await self.get_users()
-            session.send(self.presence.format(users))
+            await session.send(self.presence.format(users))
             return name
         raise UndefinedBehaviour
 
@@ -93,17 +93,17 @@ class Chat:
         message = self.message.format(name, message)
         sessions = set(name) ^ self.sessions
         for session in sessions:
-            session.send(message)
+            await session.send(message)
 
     async def announce_join(self, name: str) -> None:
         announce = self.join.format(name)
         for session in self.sessions:
-            session.send(announce)
+            await session.send(announce)
 
     async def announce_leave(self, name: str)  -> None:
         announce = self.leave.format(name)
         for session in self.sessions:
-            session.send(announce)
+            await session.send(announce)
 
     async def get_users(self) -> str:
         users = [f"{session}" for session in self.sessions]
