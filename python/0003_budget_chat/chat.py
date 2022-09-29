@@ -6,7 +6,7 @@ from typing import Optional, Set
 from uuid import uuid4
 
 # create logger
-logging.config.fileConfig("../../logging.conf")
+logging.config.fileConfig("../logging.conf")
 logger = logging.getLogger("chat")
 
 
