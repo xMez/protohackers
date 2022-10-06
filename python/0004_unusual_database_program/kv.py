@@ -38,9 +38,7 @@ async def main():
     loop = asyncio.get_running_loop()
 
     await loop.create_datagram_endpoint(lambda: KvServerProtocol(), local_addr=ADDR)
-
-    async with loop:
-        loop.run_forever()
+    loop.run_forever()
 
 
 if __name__ == "__main__":
