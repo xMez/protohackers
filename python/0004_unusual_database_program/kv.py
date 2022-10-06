@@ -33,13 +33,17 @@ class KvServerProtocol:
 
 
 async def main():
-    ADDR = ("0.0.0.0", 10007)
-
     loop = asyncio.get_running_loop()
-    await loop.create_datagram_endpoint(lambda: KvServerProtocol(), local_addr=ADDR)
+    print("Starting UDP server")
 
-    # Wait forever
-    await asyncio.Event().wait()
+    transport, _ = await loop.create_datagram_endpoint(
+        lambda: KvServerProtocol(), local_addr=("0.0.0.0", 10007)
+    )
+
+    try:
+        await asyncio.sleep(3600)
+    finally:
+        transport.close()
 
 
 if __name__ == "__main__":
