@@ -1,0 +1,9 @@
+# VSCode
+.vscode
+
+# Cache
+.mypy_cache
+__pycache__
+
+# Venv
+.venv
