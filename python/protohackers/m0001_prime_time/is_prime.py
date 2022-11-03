@@ -52,7 +52,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             return json.loads(data.decode("utf-8"))
         except json.JSONDecodeError as error:
             raise MalformedRequestError from error
-    
+
     @staticmethod
     def get_number(data: dict) -> int | float:
         if data.get("method") == "isPrime":
@@ -63,13 +63,13 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
         raise MalformedRequestError
 
     @staticmethod
-    def is_prime(n: int | float) -> bool:
-        if isinstance(n, float):
+    def is_prime(num: int | float) -> bool:
+        if isinstance(num, float):
             return False
-        if n < 2:
+        if num < 2:
             return False
-        for i in range(2, int(math.sqrt(n)) + 1):
-            if (n % i) == 0:
+        for i in range(2, int(math.sqrt(num)) + 1):
+            if (num % i) == 0:
                 return False
         return True
 
@@ -78,17 +78,22 @@ class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
     pass
 
 
-if __name__ == "__main__":
-    HOST, PORT = "0.0.0.0", 10008
-
-    server = ThreadedTCPServer((HOST, PORT), ThreadedTCPRequestHandler)
+def serve():
+    server = ThreadedTCPServer(("0.0.0.0", 10008), ThreadedTCPRequestHandler)  # nosec
     with server:
-        ip, port = server.server_address
-
         server_thread = threading.Thread(target=server.serve_forever)
-        server_thread.daemon = True
+        server_thread.daemon = True  # noqa
         server_thread.start()
 
         print("server running in thread:", server_thread.name)
-        
+
         server_thread.join()
+
+
+def run():
+    print("Running prime time")
+    serve()
+
+
+if __name__ == "__main__":
+    run()

@@ -20,15 +20,22 @@ class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
     pass
 
 
-if __name__ == "__main__":
-    HOST, PORT = "0.0.0.0", 10007
-
-    server = ThreadedTCPServer((HOST, PORT), ThreadedTCPRequestHandler)
+def serve():
+    server = ThreadedTCPServer(("0.0.0.0", 10007), ThreadedTCPRequestHandler)  # nosec
     with server:
         server_thread = threading.Thread(target=server.serve_forever)
-        server_thread.daemon = True
+        server_thread.daemon = True  # noqa
         server_thread.start()
 
         print("server running in thread:", server_thread.name)
 
         server_thread.join()
+
+
+def run():
+    print("Running smoke test (asyncio)")
+    serve()
+
+
+if __name__ == "__main__":
+    run()

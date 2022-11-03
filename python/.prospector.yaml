@@ -1,0 +1,36 @@
+strictness: veryhigh
+doc-warnings: false
+test-warnings: false
+autodetect: false
+member-warnings: false
+max-line-length: 88
+
+pylint:
+  run: true
+
+pycodestyle:
+  run: true
+
+pyflakes:
+  run: true
+
+mccabe:
+  run: true
+
+dodgy:
+  run: true
+
+pydocstyle:
+  run: true
+
+pyroma:
+  run: true
+
+vulture:
+  run: true
+
+mypy:
+  run: true
+
+bandit:
+  run: true
