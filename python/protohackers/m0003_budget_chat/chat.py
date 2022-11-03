@@ -5,9 +5,12 @@ import re
 from typing import Optional, Set
 from uuid import uuid4
 
+from protohackers import logging_config
+
 # create logger
-logging.config.fileConfig("../logging.conf")
-logger = logging.getLogger("chat")
+logging.config.dictConfig(logging_config)
+# logging.config.fileConfig("../logging.conf")
+logger = logging.getLogger("protohackers")
 
 
 class UndefinedBehaviour(Exception):
@@ -25,12 +28,9 @@ class Chat:
 
         @classmethod
         async def create(
-            cls,
-            reader: asyncio.StreamReader,
-            writer: asyncio.StreamWriter,
-            uuid: str
+            cls, reader: asyncio.StreamReader, writer: asyncio.StreamWriter, uuid: str
         ):
-            self = Chat.Session()
+            self = cls()
             self.reader = reader
             self.writer = writer
             self.name = ""
@@ -122,14 +122,17 @@ class Chat:
         return name
 
 
-async def main():
-    HOST, PORT = "0.0.0.0", 10007
-
+async def serve():
     chat = Chat()
-    server = await asyncio.start_server(chat.handle, HOST, PORT)
+    server = await asyncio.start_server(chat.handle, "0.0.0.0", 10007)  # nosec
     async with server:
         await server.serve_forever()
 
 
+def run():
+    print("Running budget chat")
+    asyncio.run(serve(), debug=True)
+
+
 if __name__ == "__main__":
-    asyncio.run(main(), debug=True)
+    run()

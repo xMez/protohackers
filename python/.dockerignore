@@ -1,0 +1,9 @@
+# Ignore everything
+*
+
+# Whitelist project code
+!/protohackers
+!/entrypoint.sh
+!/poetry.lock
+!/pyproject.toml
+!/README.rst

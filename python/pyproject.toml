@@ -1,0 +1,34 @@
+[build-system]
+requires = [ "poetry-core",]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+name = "protohackers"
+version = "0.5.0"
+description = ""
+authors = [ "Mez <albin.soderstrom@hotmail.com>",]
+readme = "README.rst"
+[[tool.poetry.packages]]
+include = "protohackers"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+
+[tool.poetry.scripts]
+add_modules = "config:main"
+smoke_test = "protohackers.m0000_smoke_test:main"
+prime_time = "protohackers.m0001_prime_time:main"
+budget_chat = "protohackers.m0003_budget_chat:main"
+means_to_an_end = "protohackers.m0002_means_to_an_end:main"
+unusual_database_program = "protohackers.m0004_unusual_database_program:main"
+mob_in_the_middle = "protohackers.m0005_mob_in_the_middle:main"
+
+[tool.poetry.group.dev.dependencies]
+pre-commit = "^2.20.0"
+black = "^22.10.0"
+toml = "^0.10.2"
+ipython = "^8.5.0"
+
+[tool.poetry.group.dev.dependencies.prospector]
+extras = [ "with_bandit", "with_mypy", "with_pyroma", "with_vulture",]
+version = "^1.7.7"
