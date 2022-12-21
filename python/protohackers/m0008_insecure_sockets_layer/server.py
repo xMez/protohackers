@@ -2,9 +2,12 @@
 import asyncio
 from asyncio import StreamReader, StreamWriter
 from dataclasses import dataclass
+import logging
 from typing import Dict, Optional
 
 from protohackers.m0008_insecure_sockets_layer.obfuscate import Cipher
+
+logging.basicConfig(level=logging.INFO)
 
 
 @dataclass
@@ -51,6 +54,7 @@ class Session:
         line = await self.io.reader.readline()
         if self.cipher:
             line = self.cipher.decrypt(line, self.read_pos)
+        logging.info("Received: %s", line)
         self.read_pos += len(line)
         return line.decode(encoding="ascii")
 
@@ -62,6 +66,7 @@ class Session:
         line : str
             Line to send
         """
+        logging.info("Sending: %s", line)
         encoded = line.encode(encoding="ascii")
         if self.cipher:
             encoded = self.cipher.encrypt(encoded, self.send_pos)
@@ -89,6 +94,7 @@ async def handle(reader: StreamReader, writer: StreamWriter) -> None:
     writer : StreamWriter
         Client writer
     """
+    logging.info("New connection %s", reader)
     cipher_spec = await reader.readuntil(bytes(1))
     cipher = Cipher(cipher_spec)
     io = Io(reader=reader, writer=writer)
