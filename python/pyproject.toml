@@ -22,6 +22,9 @@ budget_chat = "protohackers.m0003_budget_chat:main"
 means_to_an_end = "protohackers.m0002_means_to_an_end:main"
 unusual_database_program = "protohackers.m0004_unusual_database_program:main"
 mob_in_the_middle = "protohackers.m0005_mob_in_the_middle:main"
+line_reversal = "protohackers.m0007_line_reversal:main"
+insecure_sockets_layer = "protohackers.m0008_insecure_sockets_layer:main"
+speed_daemon = "protohackers.m0006_speed_daemon:main"
 
 [tool.poetry.group.dev.dependencies]
 pre-commit = "^2.20.0"
