@@ -38,10 +38,15 @@ class Session:
 
     async def handle(self) -> None:
         """Handle session."""
-        line = await self.receive()
-        toys = self.get_toys(line)
-        max_toy = max(toys.keys())
-        await self.send(f"{max_toy}x {toys[max_toy]}\n")
+        try:
+            while line := await self.receive():
+                toys = self.get_toys(line)
+                max_toy = max(toys.keys())
+                await self.send(f"{max_toy}x {toys[max_toy]}\n")
+        except Exception as error:  # pylint: disable=broad-except
+            logging.critical("Bad session: %s", error)
+        finally:
+            self.io.writer.close()
 
     async def receive(self) -> str:
         """Recieve and decrypt a line from the connected client.
@@ -52,6 +57,8 @@ class Session:
             Decrypted line
         """
         line = await self.io.reader.readline()
+        if line == b"":
+            return ""
         if self.cipher:
             line = self.cipher.decrypt(line, self.read_pos)
         logging.info("Received: %s", repr(line))
