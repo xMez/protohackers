@@ -39,6 +39,9 @@ class Session:
     async def handle(self) -> None:
         """Handle session."""
         try:
+            logging.debug("Reading lines")
+            if self.io.reader.at_eof():
+                raise ConnectionError
             while line := await self.receive():
                 toys = self.get_toys(line)
                 max_toy = max(toys.keys())
