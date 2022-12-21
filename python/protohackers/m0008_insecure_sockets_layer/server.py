@@ -108,8 +108,6 @@ async def handle(reader: StreamReader, writer: StreamWriter) -> None:
     """
     logging.info("New connection %s", reader)
     cipher_spec = await reader.readuntil(b"\x00")
-    line = await reader.readline()
-    logging.debug("First line %s", line)
     cipher = Cipher(cipher_spec)
     io = Io(reader=reader, writer=writer)
     session = Session(io, cipher=cipher)
