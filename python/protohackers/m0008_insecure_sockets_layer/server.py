@@ -97,7 +97,7 @@ async def handle(reader: StreamReader, writer: StreamWriter) -> None:
         Client writer
     """
     logging.info("New connection %s", reader)
-    cipher_spec = await reader.readuntil(bytes(1))
+    cipher_spec = await reader.readuntil(b"\x00")
     cipher = Cipher(cipher_spec)
     io = Io(reader=reader, writer=writer)
     session = Session(io, cipher=cipher)
