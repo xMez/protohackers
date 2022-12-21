@@ -6,21 +6,23 @@ import random
 from functools import partial
 from typing import Callable, Generator, Optional
 
+logging.basicConfig(level=logging.INFO)
+
 
 class Cipher:
     """Cipher class for the current cipher."""
 
     def __init__(self, spec: bytes) -> None:
         """Initialize a cipher."""
-        self.log = logging.Logger(__name__, logging.INFO)
         try:
+            logging.info("Got cipher spec: %s", spec.hex())
             self.cipher_sequence = list(self.get_cipher_sequence(spec))
             self.validate_cipher()
         except ValueError as error:
-            self.log.error("Failed to initialize cipher, invalid value: %s", error)
+            logging.error("Failed to initialize cipher, invalid value: %s", error)
             raise Exception from error
         except AssertionError as error:
-            self.log.error("Invalid cipher: No-op")
+            logging.error("Invalid cipher: No-op")
             raise Exception from error
 
     @staticmethod

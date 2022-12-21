@@ -54,7 +54,7 @@ class Session:
         line = await self.io.reader.readline()
         if self.cipher:
             line = self.cipher.decrypt(line, self.read_pos)
-        logging.info("Received: %s", line)
+        logging.info("Received: %s", repr(line))
         self.read_pos += len(line)
         return line.decode(encoding="ascii")
 
@@ -66,7 +66,7 @@ class Session:
         line : str
             Line to send
         """
-        logging.info("Sending: %s", line)
+        logging.info("Sending: %s", repr(line))
         encoded = line.encode(encoding="ascii")
         if self.cipher:
             encoded = self.cipher.encrypt(encoded, self.send_pos)
