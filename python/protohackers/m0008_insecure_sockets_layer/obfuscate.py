@@ -6,7 +6,7 @@ import random
 from functools import partial
 from typing import Callable, Generator, Optional
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 
 
 class Cipher:

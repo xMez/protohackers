@@ -7,7 +7,7 @@ from typing import Dict, Optional
 
 from protohackers.m0008_insecure_sockets_layer.obfuscate import Cipher
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 
 
 @dataclass
