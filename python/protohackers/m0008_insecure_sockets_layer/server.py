@@ -95,6 +95,22 @@ class Session:
         return toys
 
 
+async def get_cipher_spec(reader: StreamReader) -> bytearray:
+    spec = bytearray(80)
+    i = 0
+    while True:
+        chars = await reader.read(1)
+        spec[i] = chars[0]
+        if spec[i] == b"\x02" or spec[i] == b"\x04":
+            i += 1
+            chars = await reader.read(1)
+            spec[i] = chars[0]
+        elif spec[i] == b"\x00":
+            break
+        i += 1
+    return spec
+
+
 async def handle(reader: StreamReader, writer: StreamWriter) -> None:
     """Handle incomming connection,
     initializing the cipher and starting a session.
@@ -108,7 +124,7 @@ async def handle(reader: StreamReader, writer: StreamWriter) -> None:
     """
     logging.info("New connection %s", reader)
     try:
-        cipher_spec = await reader.readuntil(b"\x00")
+        cipher_spec = await get_cipher_spec(reader)
         cipher = Cipher(cipher_spec)
         io = Io(reader=reader, writer=writer)
         session = Session(io, cipher=cipher)
