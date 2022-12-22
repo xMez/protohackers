@@ -190,11 +190,10 @@ class Cipher:
 
     def validate_cipher(self):
         """Validate that the cipher is functional and not a no-op cipher."""
-        pos = random.randint(0, 256)  # nosec
         random_message = bytes(random.getrandbits(8) for _ in range(256))
-        if random_message != self.decrypt(self.encrypt(random_message, pos), pos):
+        if random_message != self.decrypt(self.encrypt(random_message, 0), 0):
             raise CipherError("Broken cipher")
-        if random_message == self.encrypt(random_message, pos):
+        if random_message == self.encrypt(random_message, 0):
             raise CipherError("No-op cipher")
 
     def encrypt(self, line: bytes, pos: int) -> bytes:
