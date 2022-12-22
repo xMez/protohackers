@@ -1,0 +1,35 @@
+# See https://pre-commit.com for more information
+# See https://pre-commit.com/hooks.html for more hooks
+repos:
+    - repo: https://github.com/pre-commit/pre-commit-hooks
+      rev: v4.4.0
+      hooks:
+          - id: trailing-whitespace
+            exclude: .*/requirements.txt
+          - id: end-of-file-fixer
+            exclude: .*/requirements.txt
+          - id: check-added-large-files
+    - repo: https://github.com/psf/black
+      rev: 22.12.0
+      hooks:
+          - id: black
+            files: "python/.*"
+            types: [python]
+    - repo: local
+      hooks:
+          - id: add-modules
+            name: modules as scripts
+            language: system
+            entry: bash -c 'cd python && poetry run add_modules -f pyproject.toml -m protohackers'
+          - id: poetry-check
+            name: run poetry check
+            language: system
+            entry: bash -c 'cd python && poetry check'
+          - id: poetry-lock
+            name: run poetry lock
+            language: system
+            entry: bash -c 'cd python && poetry lock'
+          - id: poetry-export
+            name: run poetry export
+            language: system
+            entry: bash -c 'cd python && poetry export -f requirements.txt -o requirements.txt'
