@@ -59,14 +59,19 @@ class Session:
         str
             Decrypted line
         """
-        line = await self.io.reader.readline()
-        if line == b"":
-            return ""
-        if self.cipher:
-            line = self.cipher.decrypt(line, self.read_pos)
+        line = ""
+        while True:
+            char = await self.io.reader.read(1)
+            if char == b"":
+                return ""
+            if self.cipher:
+                char = self.cipher.decrypt(char, self.read_pos)
+            self.read_pos += 1
+            if char == b"\n":
+                break
+            line += char.decode(encoding="ascii")
         logging.info("Received: %s", repr(line))
-        self.read_pos += len(line)
-        return line.decode(encoding="ascii")
+        return line
 
     async def send(self, line: str) -> None:
         """Encrypt and send a line to the connected client.
