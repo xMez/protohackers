@@ -9,6 +9,10 @@ from typing import Callable, Generator, Optional
 logging.basicConfig(level=logging.DEBUG)
 
 
+class CipherError(Exception):
+    """Error constructing cipher sequence."""
+
+
 class Cipher:
     """Cipher class for the current cipher."""
 
@@ -20,10 +24,10 @@ class Cipher:
             self.validate_cipher()
         except ValueError as error:
             logging.error("Failed to initialize cipher, invalid value: %s", error)
-            raise Exception from error
+            raise CipherError from error
         except AssertionError as error:
             logging.error("Invalid cipher: No-op")
-            raise Exception from error
+            raise CipherError from error
 
     @staticmethod
     def reversebits(line: bytearray) -> bytearray:

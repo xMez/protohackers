@@ -5,7 +5,7 @@ from dataclasses import dataclass
 import logging
 from typing import Dict, Optional
 
-from protohackers.m0008_insecure_sockets_layer.obfuscate import Cipher
+from protohackers.m0008_insecure_sockets_layer.obfuscate import Cipher, CipherError
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -46,7 +46,7 @@ class Session:
                 toys = self.get_toys(line)
                 max_toy = max(toys.keys())
                 await self.send(f"{max_toy}x {toys[max_toy]}\n")
-        except Exception as error:  # pylint: disable=broad-except
+        except CipherError as error:
             logging.critical("Bad session: %s", error)
         finally:
             self.io.writer.close()
