@@ -25,9 +25,9 @@ class Cipher:
         except ValueError as error:
             logging.error("Failed to initialize cipher, invalid value: %s", error)
             raise CipherError from error
-        except AssertionError as error:
-            logging.error("Invalid cipher: No-op")
-            raise CipherError from error
+        except CipherError as error:
+            logging.error("Invalid cipher: %s", error)
+            raise error
 
     @staticmethod
     def reversebits(line: bytearray) -> bytearray:
@@ -184,10 +184,13 @@ class Cipher:
                     raise ValueError
 
     def validate_cipher(self):
-        """Validate that the cipher is not a no-op cipher."""
-        test_string = b"The quick brown fox jumps over the lazy dog\n"
-        pos = random.randint(0, 255)  # nosec
-        assert test_string == self.decrypt(self.encrypt(test_string, pos), pos)  # nosec
+        """Validate that the cipher is functional and not a no-op cipher."""
+        pos = random.randint(0, 256)  # nosec
+        random_message = bytes(random.getrandbits(8) for _ in range(256))
+        if random_message != self.decrypt(self.encrypt(random_message, pos), pos):
+            raise CipherError("Broken cipher")
+        if random_message == self.encrypt(random_message, pos):
+            raise CipherError("No-op cipher")
 
     def encrypt(self, line: bytes, pos: int) -> bytes:
         """Encrypt a line using the cipher.
