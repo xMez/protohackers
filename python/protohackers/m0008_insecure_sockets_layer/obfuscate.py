@@ -65,8 +65,10 @@ class Cipher:
             XOR'd array
         """
         result = bytearray(line)
-        for i, _ in enumerate(result):
-            result[i] ^= value
+        for i, byte in enumerate(result):
+            byte ^= value
+            byte %= 256
+            result[i] = byte
         return result
 
     @staticmethod
@@ -86,8 +88,11 @@ class Cipher:
             XOR'd array
         """
         result = bytearray(line)
-        for i, _ in enumerate(result):
-            result[i] ^= pos + i
+        for i, byte in enumerate(result):
+            value = pos + i
+            byte ^= value
+            byte %= 256
+            result[i] = byte
         return result
 
     @staticmethod
