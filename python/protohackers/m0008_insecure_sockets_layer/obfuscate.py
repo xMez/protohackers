@@ -4,7 +4,7 @@
 import logging
 import random
 from functools import partial
-from typing import Callable, Generator, Optional
+from typing import Callable, Generator
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -28,9 +28,10 @@ class Cipher:
         except CipherError as error:
             logging.error("Invalid cipher: %s", error)
             raise error
+        logging.info("Initialized cipher: %s", spec.hex())
 
     @staticmethod
-    def reversebits(line: bytearray) -> bytearray:
+    def reversebits(line: bytearray, **_) -> bytearray:
         """Reverse the order of bits in the byte.
 
         Parameters
@@ -49,7 +50,7 @@ class Cipher:
         return result
 
     @staticmethod
-    def xor(line: bytearray, value: int = 0) -> bytearray:
+    def xor(line: bytearray, value: int = 0, **_) -> bytearray:
         """XOR each byte in a bytearray.
 
         Parameters
@@ -72,7 +73,7 @@ class Cipher:
         return result
 
     @staticmethod
-    def xorpos(line: bytearray, pos: int = 0) -> bytearray:
+    def xorpos(line: bytearray, pos: int = 0, **_) -> bytearray:
         """XOR each byte in a bytearray by it's position in the stream.
 
         Parameters
@@ -96,7 +97,7 @@ class Cipher:
         return result
 
     @staticmethod
-    def add(line: bytearray, value: int = 0, sub: Optional[bool] = None) -> bytearray:
+    def add(line: bytearray, value: int = 0, sub: bool = False) -> bytearray:
         """ADD `value` to each byte in a bytearray, modulo 256.
 
         Parameters
@@ -106,24 +107,25 @@ class Cipher:
         value : int, optional
             value to ADD, by default 0
         sub : bool, optional
-            Change to SUB for deciphering, by default None
+            Change to SUB for deciphering, by default False
 
         Returns
         -------
         bytearray
             ADD'd array
         """
-        if sub:
-            value = -value
         result = bytearray(line)
         for i, byte in enumerate(result):
-            byte += value
+            if sub:
+                byte -= value
+            else:
+                byte += value
             byte %= 256
             result[i] = byte
         return result
 
     @staticmethod
-    def addpos(line: bytearray, pos: int = 0, sub: Optional[bool] = None) -> bytearray:
+    def addpos(line: bytearray, pos: int = 0, sub: bool = False) -> bytearray:
         """ADD the position in the stream to each byte in a bytearray, modulo 256.
 
         Parameters
@@ -133,7 +135,7 @@ class Cipher:
         pos : int, optional
             Current position of the stream, by default 0
         sub : bool, optional
-            Change to SUB to deciphering, by default None
+            Change to SUB to deciphering, by default False
 
         Returns
         -------
@@ -190,10 +192,12 @@ class Cipher:
 
     def validate_cipher(self):
         """Validate that the cipher is functional and not a no-op cipher."""
-        random_message = bytes(random.getrandbits(8) for _ in range(256))
-        if random_message != self.decrypt(self.encrypt(random_message, 0), 0):
+        random_message = bytes(random.getrandbits(8) for _ in range(16))
+        encrypted = self.encrypt(random_message, 0)
+        decrypted = self.decrypt(encrypted, 0)
+        if random_message != decrypted:
             raise CipherError("Broken cipher")
-        if random_message == self.encrypt(random_message, 0):
+        if random_message == encrypted:
             raise CipherError("No-op cipher")
 
     def encrypt(self, line: bytes, pos: int) -> bytes:
@@ -240,12 +244,8 @@ class Cipher:
         result = bytearray(line)
         for cipher in self.cipher_sequence[::-1]:
             match cipher:
-                case self.xorpos:
-                    result = cipher(result, pos)
-                case self.add:
-                    result = cipher(result, sub=True)
-                case self.addpos:
+                case self.xorpos | self.addpos:
                     result = cipher(result, pos, sub=True)
                 case _:
-                    result = cipher(result)
+                    result = cipher(result, sub=True)
         return result
