@@ -86,8 +86,6 @@ class Session:
 
     @staticmethod
     def get_toys(line: str) -> Dict[int, str]:
-        if line[-1] == "\n":
-            line = line[:-1]
         toys: Dict[int, str] = {}
         for entry in line.split(","):
             num, _, toy = entry.partition("x ")

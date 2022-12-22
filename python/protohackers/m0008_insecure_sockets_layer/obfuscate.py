@@ -1,10 +1,10 @@
 """Obfuscation module implementing a cipher sequence."""
-
-
 import logging
 import random
 from functools import partial
 from typing import Callable, Generator
+
+BYTE_SIZE = 256
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -44,10 +44,9 @@ class Cipher:
         bytearray
             Bit reversed line
         """
-        result = bytearray(line)
-        for i, byte in enumerate(result):
-            result[i] = int(f"{byte:08b}"[::-1], 2)
-        return result
+        for i, byte in enumerate(line):
+            line[i] = int(f"{byte:08b}"[::-1], 2)
+        return line
 
     @staticmethod
     def xor(line: bytearray, value: int = 0, **_) -> bytearray:
@@ -65,12 +64,11 @@ class Cipher:
         bytearray
             XOR'd array
         """
-        result = bytearray(line)
-        for i, byte in enumerate(result):
+        for i, byte in enumerate(line):
             byte ^= value
-            byte %= 256
-            result[i] = byte
-        return result
+            byte %= BYTE_SIZE
+            line[i] = byte
+        return line
 
     @staticmethod
     def xorpos(line: bytearray, pos: int = 0, **_) -> bytearray:
@@ -88,17 +86,16 @@ class Cipher:
         bytearray
             XOR'd array
         """
-        result = bytearray(line)
-        for i, byte in enumerate(result):
+        for i, byte in enumerate(line):
             value = pos + i
             byte ^= value
-            byte %= 256
-            result[i] = byte
-        return result
+            byte %= BYTE_SIZE
+            line[i] = byte
+        return line
 
     @staticmethod
-    def add(line: bytearray, value: int = 0, sub: bool = False) -> bytearray:
-        """ADD `value` to each byte in a bytearray, modulo 256.
+    def add(line: bytearray, value: int = 0, sub: bool = False, **_) -> bytearray:
+        """ADD `value` to each byte in a bytearray, modulo BYTE_SIZE.
 
         Parameters
         ----------
@@ -114,19 +111,18 @@ class Cipher:
         bytearray
             ADD'd array
         """
-        result = bytearray(line)
-        for i, byte in enumerate(result):
+        for i, byte in enumerate(line):
             if sub:
                 byte -= value
             else:
                 byte += value
-            byte %= 256
-            result[i] = byte
-        return result
+            byte %= BYTE_SIZE
+            line[i] = byte
+        return line
 
     @staticmethod
-    def addpos(line: bytearray, pos: int = 0, sub: bool = False) -> bytearray:
-        """ADD the position in the stream to each byte in a bytearray, modulo 256.
+    def addpos(line: bytearray, pos: int = 0, sub: bool = False, **_) -> bytearray:
+        """ADD the position in the stream to each byte in a bytearray, modulo BYTE_SIZE.
 
         Parameters
         ----------
@@ -142,15 +138,14 @@ class Cipher:
         bytearray
             _description_
         """
-        result = bytearray(line)
-        for i, byte in enumerate(result):
+        for i, byte in enumerate(line):
             if sub:
                 byte -= pos + i
             else:
                 byte += pos + i
-            byte %= 256
-            result[i] = byte
-        return result
+            byte %= BYTE_SIZE
+            line[i] = byte
+        return line
 
     def get_cipher_sequence(self, spec: bytes) -> Generator[Callable, None, None]:
         """Create a cipher sequence from a bytes specification array.
@@ -192,7 +187,7 @@ class Cipher:
 
     def validate_cipher(self):
         """Validate that the cipher is functional and not a no-op cipher."""
-        random_message = bytes(random.getrandbits(8) for _ in range(16))
+        random_message = bytes(random.getrandbits(8) for _ in range(BYTE_SIZE))
         encrypted = self.encrypt(random_message, 0)
         decrypted = self.decrypt(encrypted, 0)
         if random_message != decrypted:
@@ -218,11 +213,7 @@ class Cipher:
         """
         result = bytearray(line)
         for cipher in self.cipher_sequence:
-            match cipher:
-                case self.xorpos | self.addpos:
-                    result = cipher(result, pos)
-                case _:
-                    result = cipher(result)
+            result = cipher(result, pos=pos)
         return result
 
     def decrypt(self, line: bytes, pos: int) -> bytes:
@@ -243,9 +234,5 @@ class Cipher:
         """
         result = bytearray(line)
         for cipher in self.cipher_sequence[::-1]:
-            match cipher:
-                case self.xorpos | self.addpos:
-                    result = cipher(result, pos, sub=True)
-                case _:
-                    result = cipher(result, sub=True)
+            result = cipher(result, pos=pos, sub=True)
         return result
