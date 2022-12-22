@@ -38,18 +38,13 @@ class Session:
 
     async def handle(self) -> None:
         """Handle session."""
-        try:
-            logging.debug("Reading lines")
-            if self.io.reader.at_eof():
-                raise ConnectionError
-            while line := await self.receive():
-                toys = self.get_toys(line)
-                max_toy = max(toys.keys())
-                await self.send(f"{max_toy}x {toys[max_toy]}\n")
-        except CipherError as error:
-            logging.critical("Bad session: %s", error)
-        finally:
-            self.io.writer.close()
+        logging.debug("Reading lines")
+        if self.io.reader.at_eof():
+            raise ConnectionError
+        while line := await self.receive():
+            toys = self.get_toys(line)
+            max_toy = max(toys.keys())
+            await self.send(f"{max_toy}x {toys[max_toy]}\n")
 
     async def receive(self) -> str:
         """Recieve and decrypt a line from the connected client.
@@ -112,11 +107,14 @@ async def handle(reader: StreamReader, writer: StreamWriter) -> None:
         Client writer
     """
     logging.info("New connection %s", reader)
-    cipher_spec = await reader.readuntil(b"\x00")
-    cipher = Cipher(cipher_spec)
-    io = Io(reader=reader, writer=writer)
-    session = Session(io, cipher=cipher)
-    await session.handle()
+    try:
+        cipher_spec = await reader.readuntil(b"\x00")
+        cipher = Cipher(cipher_spec)
+        io = Io(reader=reader, writer=writer)
+        session = Session(io, cipher=cipher)
+        await session.handle()
+    except CipherError:
+        writer.close()
 
 
 async def serve() -> None:
