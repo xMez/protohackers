@@ -101,11 +101,11 @@ async def get_cipher_spec(reader: StreamReader) -> bytearray:
     while True:
         chars = await reader.read(1)
         spec[i] = chars[0]
-        if spec[i] == b"\x02" or spec[i] == b"\x04":
+        if chars in (b"\x02", b"\x04"):
             i += 1
             chars = await reader.read(1)
             spec[i] = chars[0]
-        elif spec[i] == b"\x00":
+        elif chars == b"\x00":
             break
         i += 1
     return spec
